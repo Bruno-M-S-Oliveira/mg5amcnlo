@@ -1,8 +1,11 @@
-Update notes for MadGraph5_aMC@NLO (in reverse time order)
+    Update notes for MadGraph5_aMC@NLO (in reverse time order)
 
 ANNOUNCEMENT: 
    2.9.X version has a LONG TERM STABLE has now an end of life for bug fixing/support in december 2025.
    A new LTS (based on current 3.5.X) is starting now and will act as stable release for the coming years.
+
+3.5.7 (29/11/24)
+  OM: Include fix from LTS 2.9.22
 
 3.5.6 (26/9/24):
   OM: Include fix from LTS 2.9.21
@@ -197,7 +200,7 @@ ANNOUNCEMENT:
                         ** Long Term Stable Update **
 
 
-2.9.22 ():
+2.9.22 (29/11/24):
     OM: Fix a (NLO) issue if the environment variable was setting FFLAGS
     OM: set auto_update X, now automatically set the configuration file (as it should).
     OM: Fix a bug in helicity recycling with scan for rare case where a matrix element is first correct, then zero, then has a single helicity.
