@@ -353,7 +353,7 @@ class Banner(dict):
         assert "init" in self
         
         cross = dict(cross)
-        for key in cross.keys():
+        for key in list(cross.keys()):
             if isinstance(key, str) and key.isdigit() and int(key) not in cross:
                 cross[int(key)] = cross[key]
         
