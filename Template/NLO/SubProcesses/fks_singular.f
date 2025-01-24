@@ -2377,6 +2377,7 @@ c update the event weight to be written in the file
             ict=icontr_sum(i,icontr_picked)
             wgt(1:3,ict)=wgt(1:3,ict)*dble(Flavour_Bias(2))
          enddo
+      endif
       return
       end
       
