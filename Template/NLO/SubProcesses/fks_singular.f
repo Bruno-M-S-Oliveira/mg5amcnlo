@@ -2363,6 +2363,7 @@ c keeps its contribution from the bias_wgt.
             endif
          endif
       enddo
+      wgtref=unwgt(iproc_picked,icontr_picked)
       if (abs((wgtref-wgt_denom)/(wgtref+wgt_denom)).gt.1d-10) then
          write (*,*) "ERROR in include_inverse_bias_wgt: "/
      $        /"reference weight not equal to recomputed weight",wgtref
