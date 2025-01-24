@@ -2321,7 +2321,7 @@ c keeps its contribution from the bias_wgt.
                wgt_denom=wgt_denom+parton_iproc(ii,ict)
                wgt_num=wgt_num+parton_iproc(ii,ict)/bias_wgt(ict)
                if (Flavour_Bias(2).ne.1) then ! non-trivial Flavour bias. Check consistency of flavour configuration
-                  if (any(abs(parton_pdg_uborn(1:nexternal-1,ipro
+                  if (any(abs(parton_pdg_uborn(1:nexternal-1,ii
      $                 ,ict)).eq.Flavour_Bias(1))) then
                      if (flavour_bias_consistency .ge. 0) then
                         flavour_bias_consistency=1
@@ -2349,14 +2349,14 @@ c keeps its contribution from the bias_wgt.
                   if (flavour_bias_consistency .ge. 0) then
                      flavour_bias_consistency=1
                   else
-                     write (*,*) 'Inconsistent Flavour Bias #1'
+                     write (*,*) 'Inconsistent Flavour Bias #3'
                      stop 1
                   endif
                else
                   if (flavour_bias_consistency .le. 0) then
                      flavour_bias_consistency=-1
                   else
-                     write (*,*) 'Inconsistent Flavour Bias #2'
+                     write (*,*) 'Inconsistent Flavour Bias #4'
                      stop 1
                   endif
                endif
