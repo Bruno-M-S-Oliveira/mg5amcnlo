@@ -2377,6 +2377,7 @@ c update the event weight to be written in the file
          do i=1,icontr_sum(0,icontr_picked)
             ict=icontr_sum(i,icontr_picked)
             wgt(1:3,ict)=wgt(1:3,ict)*dble(Flavour_Bias(2))
+            bias_wgt(ict)=bias_wgt(ict)*dble(Flavour_Bias(2))
          enddo
       endif
       return
