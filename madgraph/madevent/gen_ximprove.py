@@ -30,6 +30,7 @@ import shutil
 import stat
 import sys
 import six
+import time
 from six.moves import range
 from six.moves import zip
 
@@ -1954,6 +1955,12 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
         
         if self.nprocs > 1:
             nprocs_cluster = cluster.MultiCore(nb_core=self.nprocs)
+            gridpack_start = time.time()
+            def gridpack_wait_monitoring(Idle, Running, Done):
+                if Idle+Running+Done == 0:
+                    return
+                logger.info("Gridpack event generation: %s Idle, %s Running, %s Done [%s]" 
+                            % (Idle, Running, Done, misc.format_time(time.time()-gridpack_start)))
 
         done = []
         for j in jobs:
@@ -1980,7 +1987,7 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
         write_dir = '.' if self.readonly else pjoin(self.me_dir, 'SubProcesses')
 
         if self.nprocs > 1:
-            nprocs_cluster.wait(self.me_dir, lambda Idle, Running, Done: Idle+Running+Done == 0)
+            nprocs_cluster.wait(self.me_dir, gridpack_wait_monitoring)
 
         self.check_events(goal_lum, to_refine, jobs, write_dir)
     
