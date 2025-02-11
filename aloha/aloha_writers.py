@@ -526,6 +526,7 @@ class ALOHAWriterForFortran(WriteALOHA):
         out.write('implicit none\n')
         # Check if we are in formfactor mode
         if self.has_model_parameter:
+            out.write(' include "../vector.inc"\n') 
             out.write(' include "../MODEL/input.inc"\n')
             out.write(' include "../MODEL/coupl.inc"\n')
         argument_var = [name for type,name in self.call_arg]
