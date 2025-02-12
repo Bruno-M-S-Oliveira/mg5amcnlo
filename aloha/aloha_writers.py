@@ -1591,6 +1591,9 @@ class ALOHAWriterForCPP(WriteALOHA):
                 out.write(' %s %s[%s];\n' % (self.type2def[type], name, size))
             elif (type, name) not in self.call_arg:
                 if type == 'parameter':
+                    model_name =self.routine.model.__name__ 
+                    if '.' in model_name:
+                        model_name = model_name.split('.')[-1]
                     out.write('std::complex<double> %s = Parameters_%s::getInstance()->mdl_%s;' % (name,self.routine.model.__name__,name))
                     out.write('std::complex<double> mdl_%s = %s;' % (name,name))
                 elif type != 'fct':
@@ -1760,7 +1763,7 @@ class ALOHAWriterForCPP(WriteALOHA):
                             out.write('    denom = %(pre_coup)s%(coup)s%(post_coup)s;\n' % \
                                   mydict) 
                         else:
-                            mydict['denom'] = self.routine.denominator
+                            mydict['denom'] = self.write_obj(self.routine.denominator)
                             out.write('    denom = %(pre_coup)s%(coup)s%(post_coup)s/(%(denom)s);\n' % \
                                   mydict) 
                     else:
