@@ -2611,13 +2611,15 @@ class ProcessExporterCPP(VirtualExporter):
             if self.template_src_make:
                 # Copy src Makefile
                 makefile = self.read_template_file(self.template_src_make) % \
-                               {'model': self.get_model_name(model.get('name'))}
+                               {'model': self.get_model_name(model.get('name')),
+                                'cpp_compiler': self.opt['cpp_compiler'] if self.opt['cpp_compiler'] else 'g++'}
                 open(os.path.join('src', 'Makefile'), 'w').write(makefile)
 
             if self.template_Sub_make:
                 # Copy SubProcesses Makefile
                 makefile = self.read_template_file(self.template_Sub_make) % \
-                                        {'model': self.get_model_name(model.get('name'))}
+                                        {'model': self.get_model_name(model.get('name')),
+                                         'cpp_compiler': self.opt['cpp_compiler'] if self.opt['cpp_compiler'] else 'g++'}
                 open(os.path.join('SubProcesses', 'Makefile'), 'w').write(makefile)
 
     #===========================================================================

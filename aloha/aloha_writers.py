@@ -1590,7 +1590,11 @@ class ALOHAWriterForCPP(WriteALOHA):
     
                 out.write(' %s %s[%s];\n' % (self.type2def[type], name, size))
             elif (type, name) not in self.call_arg:
-                out.write(' %s %s;\n' % (self.type2def[type], name))               
+                if type == 'parameter':
+                    out.write('std::complex<double> %s = Parameters_%s::getInstance()->mdl_%s;' % (name,self.routine.model.__name__,name))
+                    out.write('std::complex<double> mdl_%s = %s;' % (name,name))
+                elif type != 'fct':
+                    out.write(' %s %s;\n' % (self.type2def[type], name))               
 
         return out.getvalue()
 
@@ -1689,7 +1693,20 @@ class ALOHAWriterForCPP(WriteALOHA):
                 out.write(' %s = %s;\n' % (name, self.write_obj(obj)))
                 self.declaration.add(('complex', name))
         
-        for name, (fct, objs) in self.routine.fct.items():
+        def sort_fct(a, b):
+            if len(a) < len(b):
+                return -1
+            elif len(a) > len(b):
+                return 1
+            elif a < b:
+                return -1
+            else:
+                return +1
+            
+        keys = list(self.routine.fct.keys())        
+        keys.sort(key=misc.cmp_to_key(sort_fct))
+        for name in keys:
+            fct, objs = self.routine.fct[name]
             format = ' %s = %s;\n' % (name, self.get_fct_format(fct))
             out.write(format % ','.join([self.write_obj(obj) for obj in objs]))
             
