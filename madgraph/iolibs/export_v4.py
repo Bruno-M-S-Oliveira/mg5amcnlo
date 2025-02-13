@@ -1227,7 +1227,26 @@ param_card.inc: ../Cards/param_card.dat\n\t../bin/madevent treatcards param\n'''
                                   ','.join(["%5r" % i for i in list[k:k + n]])))
         return ret_list
 
-    def get_color_data_lines(self, matrix_element, n=6):
+#    def write_namelist_file(self, matrix_element, dirpath):
+#
+#        fsock = open(pjoin(dirpath, 'namelist.def'), 'w')
+#
+#        fsock.write(' &NM_CF\n')
+#        if not matrix_element.get('color_matrix'):
+#            fsock.write('  CF = 1\n')
+#        else:
+#            cf = []
+#            for index, denominator in \
+#                enumerate(matrix_element.get('color_matrix').\
+#                                                 get_line_denominators()): 
+#                num_list = matrix_element.get('color_matrix').\
+#                                            get_line_numerators(index, denominator)
+#                num_list[index] /= 2
+#                cf += [str(int(2*coeff)) for coeff in num_list[index:]]
+#            fsock.write('  CF = %s\n' % (','.join(cf))) 
+#            fsock.write(' /\n')
+
+    def get_color_data_lines(self, matrix_element, n=128):
         """Return the color matrix definition lines for this matrix element. Split
         rows in chunks of size n."""
 
@@ -1236,22 +1255,24 @@ param_card.inc: ../Cards/param_card.dat\n\t../bin/madevent treatcards param\n'''
         else:
             ret_list = []
             my_cs = color.ColorString()
-            for index, denominator in \
-                enumerate(matrix_element.get('color_matrix').\
-                                                 get_line_denominators()):
-                # First write the common denominator for this color matrix line
-                #ret_list.append("DATA Denom(%i)/%i/" % (index + 1, denominator))
+            cf_index = 0
+            # keep only a single denominator
+            denominator = min(matrix_element.get('color_matrix').get_line_denominators())
+            # First write the common denominator for the color matrix
+            ret_list.append("DATA Denom/%i/" % (denominator))
+
+            for index  in range(len(matrix_element.get('color_matrix')._col_basis1)):
                 # Then write the numerators for the matrix elements
                 num_list = matrix_element.get('color_matrix').\
                                             get_line_numerators(index, denominator)
 
                 assert all([int(i)==i for i in num_list])
-
-                for k in range(0, len(num_list), n):
-                    ret_list.append("DATA (CF(i,%3r),i=%3r,%3r) /%s/" % \
-                                    (index + 1, k + 1, min(k + n, len(num_list)),
-                                     ','.join([("%.15e" % (int(i)/denominator)).replace('e','d') for i in num_list[k:k + n]])))
-                
+                for k in range(index, len(num_list), n):
+                    nb_add = min(k + n, len(num_list)) - k 
+                    ret_list.append("DATA (CF(i),i=%3r,%3r) /%s/" % \
+                                    (cf_index+1, cf_index + nb_add,
+                                     ','.join([("%i" % ((1 if (k==index and pos==0) else 2)*int(i))).replace('e','d') for pos,i in enumerate(num_list[k:k + n])])))
+                    cf_index += nb_add                            
                 my_cs.from_immutable(sorted(matrix_element.get('color_basis').keys())[index])
                 ret_list.append("C %s" % repr(my_cs))
             return ret_list
@@ -3043,6 +3064,7 @@ CF2PY integer, intent(in) :: new_value
             matrix_element,
             fortran_model,
             proc_prefix=proc_prefix)
+        
 
         if self.opt['export_format'] == 'standalone_msP':
             filename =  pjoin(dirpath,'configs_production.inc')
