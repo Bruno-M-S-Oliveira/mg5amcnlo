@@ -260,15 +260,15 @@ ${jamp_lines}
             DO J = I, NCOLOR
               CF_INDEX = CF_INDEX + 1
               ZTEMP = ZTEMP + CF(CF_INDEX)*JAMP(J,M)
-            ENDDO
+            ENDDO ! J
     		DO N = 1, NAMPSO
 			%(select_configs_if)s
     		     TS(K) = TS(K) + REAL(ZTEMP*DCONJG(JAMP(I,N)))
 			  %(select_configs_endif)s
-    		ENDDO
-        ENDDO
-        TS(K) = TS(K) / DENOM
-    ENDDO
+    		ENDDO ! N
+        ENDDO ! I
+    ENDDO ! M
+    TS(K) = TS(K) / DENOM
 	if(sde_strat.eq.1) then
         ${amp2_lines}
 	endif
@@ -281,7 +281,7 @@ ${jamp_lines}
     		enddo
     	  enddo
         Enddo
-    ENDDO
+    ENDDO ! K
 
     END
 
