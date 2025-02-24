@@ -3831,7 +3831,7 @@ class CommonRunCmd(HelpToCmd, CheckValidForCmd, cmd.Cmd):
         """return the information that need to be kept for the scan summary.
         Auto-width are automatically added."""
         
-        return {'cross': self.results.current['cross']}
+        return {'cross': self.results.current['cross'], 'error': self.results.current['error']}
 
 
     def add_error_log_in_html(self, errortype=None):
