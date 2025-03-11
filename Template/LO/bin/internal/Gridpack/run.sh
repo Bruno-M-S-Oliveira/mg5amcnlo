@@ -22,6 +22,7 @@ function usage() {
     echo "Options:"
     echo "  -h, --help                  print this message and exit"
     echo "  -p, --parallel [num procs]  number of processes to run in parallel"
+    echo "  -m, --maxevts [num events]  maximum number of unweighted events per job"
     exit $retcode
 }
 
@@ -45,6 +46,7 @@ export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${PWD}/madevent/lib:${PWD}/HELAS/l
 
 pos_args=()
 nprocs=1
+maxevts=2500 
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -52,7 +54,9 @@ while [[ $# -gt 0 ]]; do
       usage 0 ;;
     -p|--parallel)
       nprocs="$2" && shift && shift ;;
-    -*|--*)
+    -m|--maxevts)
+      maxevts="$2" && shift && shift ;;
+    -*)
       echo "Error: Unknown option $1" && usage ;;
     *)
       pos_args+=("$1") && shift ;;
@@ -79,7 +83,7 @@ esac
 echo "Now generating $num_events events with random seed $seed and granularity $gran using $nprocs processes"
 
 ############    RUN THE PYTHON CODE #####################
-${DIR}/bin/gridrun $num_events $seed $gran $nprocs
+${DIR}/bin/gridrun $num_events $seed $gran $nprocs $maxevts
 ########################################################
 
 ###########    POSTPROCESSING      #####################

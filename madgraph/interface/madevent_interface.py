@@ -6749,7 +6749,7 @@ class SubProcesses(object):
 class GridPackCmd(MadEventCmd):
     """The command for the gridpack --Those are not suppose to be use interactively--"""
 
-    def __init__(self, me_dir = None, nb_event=0, seed=0, gran=-1, nprocs=1, *completekey, **stdin):
+    def __init__(self, me_dir = None, nb_event=0, seed=0, gran=-1, nprocs=1, maxevts=2500, *completekey, **stdin):
         """Initialize the command and directly run"""
 
         # Initialize properly
@@ -6760,6 +6760,7 @@ class GridPackCmd(MadEventCmd):
         self.random_orig = self.random
         self.granularity = gran
         self.nprocs = nprocs
+        self.maxevts = maxevts
         
         self.options['automatic_html_opening'] = False
         #write the grid_card.dat on disk
@@ -6916,9 +6917,9 @@ class GridPackCmd(MadEventCmd):
         self.update_status('Refine results to %s' % precision, level=None)
         logger.info("Using random number seed offset = %s" % self.random)
 
-        refine_opt = {'err_goal': nb_event, 'split_channels': False,
+        refine_opt = {'err_goal': nb_event, 'split_channels': True,
                       'ngran':self.granularity, 'readonly': self.readonly,
-                      'nprocs': self.nprocs}
+                      'nprocs': self.nprocs, 'maxevts': self.maxevts}
         x_improve = gen_ximprove.gen_ximprove_gridpack(self, refine_opt)
         x_improve.launch() # create the ajob for the refinment and run those!
         self.gscalefact = x_improve.gscalefact #store jacobian associate to the gridpack 

@@ -1061,6 +1061,7 @@ class gen_ximprove(object):
         # parameter for the gridpack run
         self.nreq = 2000
         self.iseed = 4321
+        self.maxevts = 2500 
         
         # placeholder for information
         self.results = 0 #updated in launch/update_html
@@ -1850,6 +1851,8 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
             self.readonly = opts['readonly']
         if 'nprocs' in opts:
             self.nprocs = opts['nprocs']
+        if 'maxevts' in opts:
+            self.max_request_event = opts['maxevts']
         super(gen_ximprove_gridpack,self).__init__(*args, **opts)
         if self.ngran == -1:
             self.ngran = 1 
@@ -1906,8 +1909,13 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
         for C in to_refine:
             #1. Compute the number of points are needed to reach target
             needed_event = max(goal_lum*C.get('axsec'), self.ngran)
-            nb_split = 1
-            
+            nb_split = int(max(1,((needed_event-1)// self.max_request_event) +1))
+            if not self.split_channels:
+                nb_split = 1
+            if nb_split > self.max_splitting:
+                nb_split = self.max_splitting
+            nb_split=max(1, nb_split)
+           
             #2. estimate how many points we need in each iteration
             if C.get('nunwgt') > 0:
                 nevents =  needed_event / nb_split * (C.get('nevents') / C.get('nunwgt'))
@@ -1917,12 +1925,20 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
                 nevents = self.max_event_in_iter
 
             if nevents < self.min_event_in_iter:
+                nb_split = int(nb_split * nevents / self.min_event_in_iter) + 1 # sr dangerous?
                 nevents = self.min_event_in_iter
             #
             # forbid too low/too large value
             nevents = max(self.min_event_in_iter, min(self.max_event_in_iter, nevents))
             logger.debug("%s : need %s event. Need %s split job of %s points", C.name, needed_event, nb_split, nevents)
             
+            # write the multi-job information
+            self.write_multijob(C, nb_split)
+            
+            packet = cluster.Packet((C.parent_name, C.name),
+                                    combine_runs.CombineRuns,
+                                    (pjoin(self.me_dir, 'SubProcesses', C.parent_name)),
+                                    {"subproc": C.name, "nb_split":nb_split})
 
             #create the  info dict  assume no splitting for the default
             info = {'name': self.cmd.results.current['run_name'],
@@ -1934,21 +1950,29 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
                     'nevents': nevents, #int(nevents*self.gen_events_security)+1,
                     'maxiter': self.max_iter,
                     'miniter': self.min_iter,
-                    'precision': -1*int(needed_event)/C.get('axsec'),
+                    'precision': -goal_lum/nb_split, # -1*int(needed_event)/C.get('axsec'),
                     'requested_event': needed_event,
                     'nhel': self.run_card['nhel'],
                     'channel': C.name.replace('G',''),
                     'grid_refinment' : 0,    #no refinment of the grid
                     'base_directory': '',   #should be change in splitted job if want to keep the grid
-                    'packet': None, 
+                    'packet': packet, 
                     }
 
             if self.readonly:
                 basedir = pjoin(os.path.dirname(__file__), '..','..','SubProcesses', info['P_dir'], info['directory'])
                 info['base_directory'] = basedir
 
-            jobs.append(info)
-          
+            if nb_split == 1:
+                jobs.append(info)
+            else:
+                for i in range(nb_split):
+                    new_info = dict(info)
+                    new_info['offset'] = i+1
+                    new_info['directory'] += self.alphabet[i % 26] + str((i+1)//26)
+                    if self.keep_grid_for_refine:
+                        new_info['base_directory'] = info['directory']
+                    jobs.append(new_info)          
 
         write_dir = '.' if self.readonly else None  
         self.create_ajob(pjoin(self.me_dir, 'SubProcesses', 'refine.sh'), jobs, write_dir) 
