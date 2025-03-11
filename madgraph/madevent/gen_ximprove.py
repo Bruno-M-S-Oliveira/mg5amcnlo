@@ -1203,6 +1203,10 @@ class gen_ximprove_v4(gen_ximprove):
     def write_multijob(self, Channel, nb_split):
         """ """
         if nb_split <=1:
+            try:
+                os.remove(pjoin(self.me_dir, 'SubProcesses', Channel.get('name'), 'multijob.dat'))
+            except OSError:
+                pass
             return
         f = open(pjoin(self.me_dir, 'SubProcesses', Channel.get('name'), 'multijob.dat'), 'w')
         f.write('%i\n' % nb_split)
@@ -1833,12 +1837,12 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
     min_event_in_iter = 500
     gen_events_security = 1.00
 
-    def __new__(cls, *args, **opts):
+    def __new__(cls, cmd, opts):
 
         cls.force_class = 'gridpack'
-        return super(gen_ximprove_gridpack, cls).__new__(cls, *args, **opts)
+        return super(gen_ximprove_gridpack, cls).__new__(cls, cmd, opts)
 
-    def __init__(self, *args, **opts):
+    def __init__(self, cmd, opts):
         
         self.ngran = -1
         self.nprocs = 1
@@ -1850,10 +1854,10 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
         if 'readonly' in opts:
             self.readonly = opts['readonly']
         if 'nprocs' in opts:
-            self.nprocs = opts['nprocs']
+            self.nprocs = int(opts['nprocs'])
         if 'maxevts' in opts:
-            self.max_request_event = opts['maxevts']
-        super(gen_ximprove_gridpack,self).__init__(*args, **opts)
+            self.max_request_event = int(opts['maxevts'])
+        super(gen_ximprove_gridpack,self).__init__(cmd, opts)
         if self.ngran == -1:
             self.ngran = 1 
 
@@ -1935,11 +1939,6 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
             # write the multi-job information
             self.write_multijob(C, nb_split)
             
-            packet = cluster.Packet((C.parent_name, C.name),
-                                    combine_runs.CombineRuns,
-                                    (pjoin(self.me_dir, 'SubProcesses', C.parent_name)),
-                                    {"subproc": C.name, "nb_split":nb_split})
-
             #create the  info dict  assume no splitting for the default
             info = {'name': self.cmd.results.current['run_name'],
                     'script_name': 'unknown',
@@ -1956,7 +1955,7 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
                     'channel': C.name.replace('G',''),
                     'grid_refinment' : 0,    #no refinment of the grid
                     'base_directory': '',   #should be change in splitted job if want to keep the grid
-                    'packet': packet, 
+                    'packet': None, 
                     }
 
             if self.readonly:
@@ -2007,12 +2006,16 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
             if self.nprocs == 1:
                 cluster.onecore.launch_and_wait(exe, cwd=pwd, packet_member=j['packet'])
             else:
-                nprocs_cluster.submit(exe, cwd=pwd)
+                nprocs_cluster.cluster_submit(exe, cwd=pwd, packet_member=j['packet'])
         write_dir = '.' if self.readonly else pjoin(self.me_dir, 'SubProcesses')
 
         if self.nprocs > 1:
             nprocs_cluster.wait(self.me_dir, gridpack_wait_monitoring)
 
+        if self.readonly:
+            combine_runs.CombineRuns(write_dir)
+        else:
+            combine_runs.CombineRuns(self.me_dir)
         self.check_events(goal_lum, to_refine, jobs, write_dir)
     
     def check_events(self, goal_lum, to_refine, jobs, Sdir):
