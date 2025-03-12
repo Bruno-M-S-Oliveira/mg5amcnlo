@@ -1246,63 +1246,46 @@ param_card.inc: ../Cards/param_card.dat\n\t../bin/madevent treatcards param\n'''
 #            fsock.write('  CF = %s\n' % (','.join(cf))) 
 #            fsock.write(' /\n')
 
+
+
     def get_color_data_lines(self, matrix_element, n=128):
         """Return the color matrix definition lines for this matrix element. Split
         rows in chunks of size n."""
 
         if not matrix_element.get('color_matrix'):
             return ["DATA Denom/1/", "DATA CF/1/"]
-        
-        elif matrix_element.get('color_matrix')._col_basis1 is not matrix_element.get('color_matrix')._col_basis2:
-            #assymetric case (EWSudakov and some loop?)
-            ret_list = []
-            my_cs = color.ColorString()
-            cf_index = 0
-            # keep only a single denominator
-            denominator = min(matrix_element.get('color_matrix').get_line_denominators())
-            # First write the common denominator for the color matrix
-            ret_list.append("DATA Denom/%i/" % (denominator))
 
-            for index  in range(len(matrix_element.get('color_matrix')._col_basis1)):
-                # Then write the numerators for the matrix elements
-                num_list = matrix_element.get('color_matrix').\
-                                            get_line_numerators(index, denominator)
+        ret_list = []
+        my_cs = color.ColorString()
+        denominator = min(matrix_element.get('color_matrix').get_line_denominators())
+        ret_list.append("DATA Denom/%i/" % denominator)
 
-                assert all([int(i)==i for i in num_list])
-                for k in range(0, len(num_list), n):
+        cf_index = 0
+        col_basis = matrix_element.get('color_matrix')._col_basis1
+        is_asym = matrix_element.get('color_matrix')._col_basis1 is not matrix_element.get('color_matrix')._col_basis2
+        for index in range(len(col_basis)):
+            num_list = matrix_element.get('color_matrix').get_line_numerators(index, denominator)
+            assert all(int(i) == i for i in num_list)
+            if is_asym:
+                min_k = 0
+            else:
+                min_k = index # only include the upper diagonal
+            for k in range(min_k, len(num_list), n):
+                chunk = num_list[k:k+n]
+                if is_asym:
                     ret_list.append("DATA (CF(i,%3r),i=%3r,%3r) /%s/" % \
-                                    (index+1, k + 1, min(k + n, len(num_list)),
-                                     ','.join([("%i" % (int(i))) for i in num_list[k:k + n]])))                   
-                my_cs.from_immutable(sorted(matrix_element.get('color_basis').keys())[index])
-                ret_list.append("C %s" % repr(my_cs))
-            return ret_list
-
-        else:
-            # symmetric case (usual case)
-            ret_list = []
-            my_cs = color.ColorString()
-            cf_index = 0
-            # keep only a single denominator
-            denominator = min(matrix_element.get('color_matrix').get_line_denominators())
-            # First write the common denominator for the color matrix
-            ret_list.append("DATA Denom/%i/" % (denominator))
-
-            for index  in range(len(matrix_element.get('color_matrix')._col_basis1)):
-                # Then write the numerators for the matrix elements
-                num_list = matrix_element.get('color_matrix').\
-                                            get_line_numerators(index, denominator)
-
-                assert all([int(i)==i for i in num_list])
-                for k in range(index, len(num_list), n):
-                    nb_add = min(k + n, len(num_list)) - k 
+                                    (index+1, k + 1, k+len(chunk),
+                                     ','.join([("%i" % (int(i))) for i in chunk])))  
+                else: 
                     ret_list.append("DATA (CF(i),i=%3r,%3r) /%s/" % \
-                                    (cf_index+1, cf_index + nb_add,
-                                     ','.join([("%i" % ((1 if (k==index and pos==0) else 2)*int(i))).replace('e','d') for pos,i in enumerate(num_list[k:k + n])])))
-                    cf_index += nb_add                            
-                my_cs.from_immutable(sorted(matrix_element.get('color_basis').keys())[index])
-                ret_list.append("C %s" % repr(my_cs))
-            return ret_list
+                                    (cf_index+1, cf_index + len(chunk),
+                                     ','.join([("%i" % ((1 if (k==index and pos==0) else 2)*int(i))) for pos,i in enumerate(chunk)])))
+                cf_index += len(chunk)
 
+            my_cs.from_immutable(sorted(matrix_element.get('color_basis').keys())[index])
+            ret_list.append("C %s" % repr(my_cs))
+
+        return ret_list
 
     def get_den_factor_line(self, matrix_element):
         """Return the denominator factor line for this matrix element"""
