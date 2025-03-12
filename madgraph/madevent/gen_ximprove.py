@@ -1855,7 +1855,7 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
             self.readonly = opts['readonly']
         if 'nprocs' in opts:
             self.nprocs = int(opts['nprocs'])
-        if 'maxevts' in opts:
+        if 'maxevts' in opts and self.nprocs > 1:
             self.max_request_event = int(opts['maxevts'])
         super(gen_ximprove_gridpack,self).__init__(cmd, opts)
         if self.ngran == -1:
@@ -1969,8 +1969,7 @@ class gen_ximprove_gridpack(gen_ximprove_v4):
                     new_info = dict(info)
                     new_info['offset'] = i+1
                     new_info['directory'] += self.alphabet[i % 26] + str((i+1)//26)
-                    if self.keep_grid_for_refine:
-                        new_info['base_directory'] = info['directory']
+                    new_info['base_directory'] = info['directory']
                     jobs.append(new_info)          
 
         write_dir = '.' if self.readonly else None  
