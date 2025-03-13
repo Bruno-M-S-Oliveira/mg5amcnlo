@@ -10,6 +10,7 @@ ANNOUNCEMENT:
           based on the flavours of the external particles, as used in 2403.14419.
       RF: Use a grid for the running of alpha_S (NLO only and only when not using LHAPDF). 
       Andy Buckley: change jpg output by png output for better quality (with OM)
+      RF: Updated histograms.py to prevent warnings/errors with latest gnuplot version
 
 3.6.1 (29/11/24):
       OM+MZ: Fix a bug for lhapdf at NLO where the code was incorectly changed like the LO version (and was crashing at compilation)
