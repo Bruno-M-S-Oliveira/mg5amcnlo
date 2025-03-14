@@ -4,6 +4,9 @@ ANNOUNCMENT:
    2.9.X version has a LONG TERM STABLE has now an end of life for bug fixing/support in december 2025.
    A new LTS (based on current 3.5.X) is starting now and will act as stable release for the coming years.
 
+2.9.23 (14/03/25)
+    MZ:fix in pseudorapidity function in lhe_parser FourMomentum class (super minor issue) 
+
 2.9.22 (29/11/24):
     OM: Fix a (NLO) issue if the environment variable was setting FFLAGS
     OM: set auto_update X, now automatically set the configuration file (as it should).
@@ -12,7 +15,7 @@ ANNOUNCMENT:
         Thanks to Matteo Maltoni for finding such bug
     OM: Starting support for python3.13, as for python3.12 functionallity like reweighting will not work with 2.9.x LTS branch.
     
-2.9.21 (26/9/34):
+2.9.21 (26/9/24):
     OM: Adding support for GCC14 (thanks to joequant)
     OM: Fixing a rare issue within aloha where some generated code was not compiling
     OM: Fix issue with Pythia8 when running in run_mode=0
