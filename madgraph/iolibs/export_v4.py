@@ -1779,7 +1779,7 @@ param_card.inc: ../Cards/param_card.dat\n\t../bin/madevent treatcards param\n'''
                         if subproc_group:
                             pdf_lines = pdf_lines + \
                                         ("%s%d=PDG2PDF(LPP(IB(%d)),%d, IB(%d)," + \
-                                         "XBK(IB(%d)),DSQRT(Q2FACT(IB(%d))))\n") % \
+                                         "XBK(IB(%d)),DSQRT(Q2FACT(%d)))\n") % \
                                          (pdf_codes[initial_state],
                                           i + 1, i + 1, pdgtopdf[initial_state],i+1,
                                           i + 1, i + 1)
