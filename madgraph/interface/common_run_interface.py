@@ -749,8 +749,8 @@ class CommonRunCmd(HelpToCmd, CheckValidForCmd, cmd.Cmd):
         else:
             self.ninitial = self.proc_characteristics['ninitial']
 
-    def make_make_all_html_results(self, folder_names = [], jobs=[]):
-        return sum_html.make_all_html_results(self, folder_names, jobs)
+    def make_make_all_html_results(self, folder_names = [], jobs=[], get_attr=None):
+        return sum_html.make_all_html_results(self, folder_names, jobs, get_attr)
 
 
     def write_RunWeb(self, me_dir):
