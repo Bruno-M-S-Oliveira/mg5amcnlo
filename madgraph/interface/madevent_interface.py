@@ -3656,9 +3656,11 @@ Beware that this can be dangerous for local multicore runs.""")
         else:
             self.refine_mode = "new"
             
-        cross, error = self.make_make_all_html_results()
+        cross, error, across = self.make_make_all_html_results(get_attr=('xsec','xerru','axsec'))
+        
         self.results.add_detail('cross', cross)
         self.results.add_detail('error', error)
+        self.results.add_detail('axsec', across)
 
         self.results.add_detail('run_statistics', 
                                 dict(self.results.get_detail('run_statistics')))
@@ -3786,7 +3788,7 @@ Beware that this can be dangerous for local multicore runs.""")
             for i, local_G in enumerate(split(Gdirs, nb_chunk)):
                 line = [pjoin(self.me_dir, "Events", self.run_name, "partials%d.lhe.gz" % i)]
                 line.append(pjoin(self.me_dir, 'Events', self.run_name, '%s_%s_banner.txt' % (self.run_name, tag)))
-                line.append(str(self.results.current['cross']))
+                line.append(str(self.results.current.get('axsec')))
                 line += local_G
                 partials_info.append(self.do_combine_events_partial(' '.join(line), preprocess_only=True))
                 mycluster.submit(sys.executable, 
@@ -6876,7 +6878,7 @@ class GridPackCmd(MadEventCmd):
         #misc.call([pjoin(self.me_dir,'bin','refine4grid'),
         #                str(nb_event), '0', 'Madevent','1','GridRun_%s' % seed],
         #                cwd=self.me_dir)
-        self.refine4grid(nb_event)
+        self.gridpack_cross = self.refine4grid(nb_event)
 
         # 3) Combine the events/pythia/...
         self.exec_cmd('combine_events')
@@ -6904,6 +6906,8 @@ class GridPackCmd(MadEventCmd):
         
         precision = nb_event
 
+        across= self.make_make_all_html_results(get_attr='axsec')
+
         self.opts = dict([(key,value[1]) for (key,value) in \
                           self._survey_options.items()])
         
@@ -6929,7 +6933,7 @@ class GridPackCmd(MadEventCmd):
         #print 'run combine!!!'
         #combine_runs.CombineRuns(self.me_dir)
         
-        return
+        return across
         #update html output
         Presults = sum_html.collect_result(self)
         cross, error = Presults.xsec, Presults.xerru
@@ -7054,10 +7058,14 @@ class GridPackCmd(MadEventCmd):
                 sum_axsec += result.get('axsec')*gscalefact[Gdir]
                 
                 if len(AllEvent) >= 80: #perform a partial unweighting
-                    if self.results.current['cross'] == 0 and self.run_card['gridpack']:
-                        nb_event= self.nb_event
+                    if not self.results.current.get('axsec'):
+                        if self.run_card['gridpack'] and self.gridpack_cross:
+                            nb_event = min(abs(1.05*self.nb_event*sum_axsec/self.gridpack_cross),self.nb_event)
+                        else:
+                            nb_event= self.nb_event
                     else:
-                        nb_event = min(abs(1.01*self.nb_event*sum_axsec/self.results.current['cross']),self.run_card['nevents'])
+                        nb_event = min(abs(1.01*self.nb_event*sum_axsec/self.results.current.get('axsec')),self.run_card['nevents'], self.nb_event, self.gridpack_cross, sum_axsec)
+                    misc.sprint(nb_event, self.results.current.get('axsec'), self.gridpack_cross)
                     AllEvent.unweight(pjoin(outdir, self.run_name, "partials%s.lhe.gz" % partials),
                           get_wgt, log_level=5,  trunc_error=1e-2, event_target=nb_event)
                     AllEvent = lhe_parser.MultiEventFile()
@@ -7071,6 +7079,7 @@ class GridPackCmd(MadEventCmd):
         
         for data in partials_info:
             AllEvent.add(*data)
+            sum_xsec += data[1]
 
         if not hasattr(self,'proc_characteristic'):
             self.proc_characteristic = self.get_characteristics()
