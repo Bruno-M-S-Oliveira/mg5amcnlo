@@ -1309,24 +1309,23 @@ class OneProcessExporterCPP(object):
         rows in chunks of size n."""
 
         if not matrix_element.get('color_matrix'):
-            return "\n".join(["static const double denom[1] = {1.};",
-                              "static const double cf[1][1] = {1.};"])
+            return "\n".join(["static const double denom = 1;",
+                              "static const int cf[1] = {1};"])
         else:
             color_denominators = matrix_element.get('color_matrix').\
                                                  get_line_denominators()
-            denom_string = "static const double denom[ncolor] = {%s};" % \
-                           ",".join(["%i" % denom for denom in color_denominators])
+            denominator = min(color_denominators)
+            denom_string = "static const int denom = %i;" % (denominator)
 
             matrix_strings = []
             my_cs = color.ColorString()
-            for index, denominator in enumerate(color_denominators):
+            for index in range(len(color_denominators)):
                 # Then write the numerators for the matrix elements
                 num_list = matrix_element.get('color_matrix').\
                                             get_line_numerators(index, denominator)
 
-                matrix_strings.append("{%s}" % \
-                                     ",".join(["%d" % i for i in num_list]))
-            matrix_string = "static const double cf[ncolor][ncolor] = {" + \
+                matrix_strings+= ["%d" % (i if pos==0 else 2*i) for pos,i in enumerate(num_list[index:])]
+            matrix_string = "static const int cf[ncolor*(ncolor+1)/2] = {" + \
                             ",".join(matrix_strings) + "};"
             return "\n".join([denom_string, matrix_string])
 
