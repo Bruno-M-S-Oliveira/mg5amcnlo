@@ -1974,12 +1974,12 @@ param_card.inc: ../Cards/param_card.dat\n\t../bin/madevent treatcards param\n'''
                                 "    enddo\n"+\
                                 "   qscale=qscale/2d0\n"+\
                                 "else\n"+\
-                                "   qscale=DSQRT(Q2FACT(IB(1)))\n"+\
+                                "   qscale=DSQRT(Q2FACT(1))\n"+\
                                 "endif\n"
                         else:
                             pdf_lines = pdf_lines + \
                                 "if (DSQRT(Q2FACT(IB(2))).ne.0d0) then\n" +\
-                                "   qscale=DSQRT(Q2FACT(IB(2)))\n" +\
+                                "   qscale=DSQRT(Q2FACT(2))\n" +\
                                 "endif\n"
                 else:
                     pdf_lines = pdf_lines + \
@@ -1999,7 +1999,7 @@ param_card.inc: ../Cards/param_card.dat\n\t../bin/madevent treatcards param\n'''
 
                         if vector and subproc_group:
                             template  = "%(part)s%(beam)d(IVEC)=PDG2PDF(LPP(IB(%(beam)d)),%(pdg)d, IB(%(beam)d)," + \
-                                         "ALL_XBK(IB(%(beam)d),IVEC),DSQRT(ALL_Q2FACT(IB(%(beam)d), IVEC)))\n"
+                                         "ALL_XBK(IB(%(beam)d),IVEC),DSQRT(ALL_Q2FACT(%(beam)d, IVEC)))\n"
                             #if dressed_lep and self.opt['vector_size']:
                             #    logger.warning("vector code for lepton pdf not implemented. We removed the option to run dressed lepton")
                             #    self.proc_characteristic['limitations'].append('dressed_ee')
